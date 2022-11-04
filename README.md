@@ -1,2 +1,2 @@
-# Kronstadt
-A library for Kotlin Multiplatform 
+# Lodge
+A logging library for Kotlin Multiplatform 
