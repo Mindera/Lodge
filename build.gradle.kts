@@ -31,10 +31,10 @@ kotlin {
         // Remove log pollution until Android support in KMP improves.
         // https://issuetracker.google.com/issues/152187160
         // https://youtrack.jetbrains.com/issue/KT-48436
-        remove(getByName("androidAndroidTestRelease"))
-        remove(getByName("androidTestFixtures"))
-        remove(getByName("androidTestFixturesDebug"))
-        remove(getByName("androidTestFixturesRelease"))
+        removeDomain("androidAndroidTestRelease")
+        removeDomain("androidTestFixtures")
+        removeDomain("androidTestFixturesDebug")
+        removeDomain("androidTestFixturesRelease")
 
         val iosMain by creating {
             dependsOn(commonMain)
@@ -51,5 +51,13 @@ android {
     defaultConfig {
         minSdk = 21
         targetSdk = 33
+    }
+}
+
+fun NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet>.removeDomain(name: String) {
+    try {
+        remove(getByName(name))
+    } catch (e: UnknownDomainObjectException) {
+        //
     }
 }
