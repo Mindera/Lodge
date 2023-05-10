@@ -1,8 +1,8 @@
 package com.mindera.lodge.appenders
 
+import com.mindera.lodge.Appender
 import com.mindera.lodge.LOG.SEVERITY
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
-import com.mindera.lodge.Appender
 import platform.Foundation.NSLog
 import platform.Foundation.NSString
 

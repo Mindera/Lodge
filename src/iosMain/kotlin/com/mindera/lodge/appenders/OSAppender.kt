@@ -1,13 +1,13 @@
 package com.mindera.lodge.appenders
 
+import com.mindera.lodge.Appender
 import com.mindera.lodge.LOG.SEVERITY
-import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.DEBUG
-import com.mindera.lodge.LOG.SEVERITY.INFO
-import com.mindera.lodge.LOG.SEVERITY.WARN
 import com.mindera.lodge.LOG.SEVERITY.ERROR
 import com.mindera.lodge.LOG.SEVERITY.FATAL
-import com.mindera.lodge.Appender
+import com.mindera.lodge.LOG.SEVERITY.INFO
+import com.mindera.lodge.LOG.SEVERITY.VERBOSE
+import com.mindera.lodge.LOG.SEVERITY.WARN
 import kotlinx.cinterop.ptr
 import platform.darwin.OS_LOG_DEFAULT
 import platform.darwin.OS_LOG_TYPE_DEBUG

@@ -3,12 +3,12 @@ package com.mindera.lodge.appenders
 import android.util.Log
 import com.mindera.lodge.Appender
 import com.mindera.lodge.LOG.SEVERITY
-import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.DEBUG
-import com.mindera.lodge.LOG.SEVERITY.INFO
-import com.mindera.lodge.LOG.SEVERITY.WARN
 import com.mindera.lodge.LOG.SEVERITY.ERROR
 import com.mindera.lodge.LOG.SEVERITY.FATAL
+import com.mindera.lodge.LOG.SEVERITY.INFO
+import com.mindera.lodge.LOG.SEVERITY.VERBOSE
+import com.mindera.lodge.LOG.SEVERITY.WARN
 import kotlin.math.ceil
 
 /**
