@@ -45,12 +45,16 @@ kotlin {
     }
 }
 
+@Suppress("UnstableApiUsage")
 android {
     namespace = "com.mindera.lodge"
     compileSdk = 33
     defaultConfig {
         minSdk = 21
         targetSdk = 33
+    }
+    buildFeatures {
+        buildConfig = false
     }
 }
 
