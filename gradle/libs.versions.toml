@@ -1,0 +1,11 @@
+[versions]
+coroutines = "1.7.3"
+gradle = "8.1.1"
+kotlin = "1.9.0"
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "gradle" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+
+[libraries]
+kotlinx-coroutines-core  = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }

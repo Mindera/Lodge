@@ -8,6 +8,7 @@ import com.mindera.lodge.LOG.SEVERITY.FATAL
 import com.mindera.lodge.LOG.SEVERITY.INFO
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.WARN
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ptr
 import platform.darwin.OS_LOG_DEFAULT
 import platform.darwin.OS_LOG_TYPE_DEBUG
@@ -46,6 +47,7 @@ class OSAppender(
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun os_log_type_t.log(message: String) {
         with(OS_LOG_DEFAULT) {
             if (os_log_type_enabled(this, this@log)) {

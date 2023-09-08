@@ -1,13 +1,18 @@
+@file:Suppress(
+    "DSL_SCOPE_VIOLATION", // Remove when KTIJ-19369 is fixed. https://youtrack.jetbrains.com/issue/KTIJ-19369
+)
+
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 group = "com.mindera.lodge"
 version = "1.0.0"
 
 kotlin {
-    android()
+    jvmToolchain(8)
+    androidTarget()
     jvm()
     iosX64()
     iosArm64()
@@ -16,25 +21,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(kotlinx.coroutines.core)
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
 
         val androidMain by getting {
             dependsOn(getByName("jvmMain"))
         }
-        // Remove log pollution until Android support in KMP improves.
-        // https://issuetracker.google.com/issues/152187160
-        // https://youtrack.jetbrains.com/issue/KT-48436
-        removeDomain("androidAndroidTestRelease")
-        removeDomain("androidTestFixtures")
-        removeDomain("androidTestFixturesDebug")
-        removeDomain("androidTestFixturesRelease")
 
         val iosMain by creating {
             dependsOn(commonMain)
@@ -42,10 +35,15 @@ kotlin {
             getByName("iosArm64Main").dependsOn(this)
             getByName("iosSimulatorArm64Main").dependsOn(this)
         }
+
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
     }
 }
 
-@Suppress("UnstableApiUsage")
 android {
     namespace = "com.mindera.lodge"
     compileSdk = 33
@@ -55,13 +53,5 @@ android {
     }
     buildFeatures {
         buildConfig = false
-    }
-}
-
-fun NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet>.removeDomain(name: String) {
-    try {
-        remove(getByName(name))
-    } catch (e: UnknownDomainObjectException) {
-        //
     }
 }
