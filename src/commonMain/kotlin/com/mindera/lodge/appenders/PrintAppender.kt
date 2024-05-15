@@ -9,10 +9,9 @@ class PrintAppender(
     level: SEVERITY,
 ) : Appender {
 
-    constructor() : this (
-        id = "PrintAppender",
-        level = VERBOSE
-    )
+    constructor(id: String) : this (id = id, level = VERBOSE)
+    constructor(level: SEVERITY) : this (id = "PrintAppender", level = level)
+    constructor() : this (id = "PrintAppender")
 
     /**
      * Appender ID

@@ -19,24 +19,32 @@ kotlin {
     iosSimulatorArm64()
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
 
-        val androidMain by getting {
-            dependsOn(getByName("jvmMain"))
+        val commonJvm by creating {
+            dependsOn(commonMain.get())
         }
 
-        val iosMain by creating {
-            dependsOn(commonMain)
+        androidMain {
+            dependsOn(commonJvm)
+        }
+
+        jvmMain {
+            dependsOn(commonJvm)
+        }
+
+        create("appleMain") {
+            dependsOn(commonMain.get())
             getByName("iosX64Main").dependsOn(this)
             getByName("iosArm64Main").dependsOn(this)
             getByName("iosSimulatorArm64Main").dependsOn(this)
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }

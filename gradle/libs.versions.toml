@@ -1,7 +1,7 @@
 [versions]
 coroutines = "1.7.3"
 gradle = "8.1.1"
-kotlin = "1.9.0"
+kotlin = "1.9.20"
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "gradle" }
