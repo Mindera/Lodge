@@ -25,7 +25,8 @@ class OSAppender(
     private val formatString: String,
 ) : Appender {
 
-    constructor() : this ("OSAppender", VERBOSE, "%{public}s")
+    constructor(level: SEVERITY) : this ("OSAppender", level, "%{public}s")
+    constructor() : this (VERBOSE)
 
     /**
      * Appender ID
