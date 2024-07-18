@@ -1,5 +1,9 @@
 package com.mindera.lodge
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
 /**
  * LOG static class. It is used to abstract the LOG and have multiple possible implementations
  * It is used also to serve as static references for logging methods to be called.
@@ -11,12 +15,18 @@ object LOG {
      */
     private val appenders: MutableSet<Appender> = mutableSetOf()
 
+    private val mutex = Mutex()
+
+    private fun <T> Mutex.withLock(action: () -> T): T = runBlocking {
+        withLock(owner = null, action = action)
+    }
+
     /**
      * Enable log appender
      *
      * @param appender Log appender to enable
      */
-    fun add(appender: Appender) {
+    fun add(appender: Appender) = mutex.withLock {
         this.appenders.add(appender)
     }
 
@@ -25,7 +35,7 @@ object LOG {
      *
      * @param appenders Log appenders to enable
      */
-    fun add(appenders: List<Appender>) {
+    fun add(appenders: List<Appender>) = mutex.withLock {
         this.appenders.addAll(appenders)
     }
 
@@ -34,7 +44,7 @@ object LOG {
      *
      * @param id Log id of the loggers to be removed
      */
-    fun remove(ids: String) {
+    fun remove(ids: String) = mutex.withLock {
         this.appenders.removeAll { ids == it.loggerId }
     }
 
@@ -43,7 +53,7 @@ object LOG {
      *
      * @param ids Log ids of each of the loggers enabled by the order sent
      */
-    fun remove(ids: Set<String>) {
+    fun remove(ids: Set<String>) = mutex.withLock {
         this.appenders.removeAll { ids.contains(it.loggerId) }
     }
 
@@ -178,7 +188,7 @@ object LOG {
         severity: SEVERITY,
         t: Throwable?,
         text: String
-    ) {
+    ) = mutex.withLock {
         if(appenders.isNotEmpty()) {
             val log = "[T#$threadName] | $text"
             appenders.forEach {
