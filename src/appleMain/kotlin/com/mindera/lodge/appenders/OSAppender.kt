@@ -41,10 +41,7 @@ class OSAppender(
     override fun log(severity: SEVERITY, tag: String, t: Throwable?, log: String) {
         with(severity.toLevel()) {
             val prefix = severity.prefix(tag)
-            log(prefix + log)
-            t?.let {
-                log(prefix + it.stackTraceToString())
-            }
+            log(t?.let { prefix + "$log\n" + it.stackTraceToString() } ?: (prefix + log))
         }
     }
 
