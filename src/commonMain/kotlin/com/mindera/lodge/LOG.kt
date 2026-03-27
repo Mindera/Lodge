@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -30,31 +31,50 @@ object LOG {
      */
     private val tasks = Channel<() -> Unit>(UNLIMITED)
 
+    private var delayMillis = 0L
+
     /**
      * A dedicated coroutine that pulls lambdas out of `tasks` and executes
      * them one-by-one, preserving the exact order in which they were queued.
      */
     @Suppress("unused")
     private val job = CoroutineScope(SupervisorJob() + Default.limitedParallelism(1)).apply {
-        launch(start = UNDISPATCHED) { for (task in tasks) task() }
+        launch(start = UNDISPATCHED) {
+            for (task in tasks) {
+                task()
+                delay(delayMillis)
+            }
+        }
     }
 
     /**
-     * Enable log appender
+     * Enable log appender. No-op if an appender with the same [Appender.loggerId] is already registered.
      *
      * @param appender Log appender to enable
      */
     fun add(appender: Appender) = tasks.trySend {
-        this.appenders.add(appender)
+        if (appenders.none { it.loggerId == appender.loggerId }) {
+            appenders.add(appender)
+        } else {
+            log("LOG", WARN, null) { "Appender '${appender.loggerId}' discarded: an appender with that id is already registered." }
+        }
     }
 
     /**
-     * Enable log appenders
+     * Enable log appenders. Skips any appender whose [Appender.loggerId] is already registered.
      *
      * @param appenders Log appenders to enable
      */
     fun add(appenders: List<Appender>) {
-        tasks.trySend { this.appenders.addAll(appenders) }
+        tasks.trySend {
+            appenders.forEach { candidate ->
+                if (this.appenders.none { it.loggerId == candidate.loggerId }) {
+                    this.appenders.add(candidate)
+                } else {
+                    log("LOG", WARN, null) { "Appender '${candidate.loggerId}' discarded: an appender with that id is already registered." }
+                }
+            }
+        }
     }
 
     /**
