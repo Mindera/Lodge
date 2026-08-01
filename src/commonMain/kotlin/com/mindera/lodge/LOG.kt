@@ -38,10 +38,10 @@ object LOG {
      * them one-by-one, preserving the exact order in which they were queued.
      */
     @Suppress("unused")
-    private val job = CoroutineScope(SupervisorJob() + Default.limitedParallelism(1)).apply {
+    private val scope = CoroutineScope(SupervisorJob() + Default.limitedParallelism(1)).apply {
         launch(start = UNDISPATCHED) {
             for (task in tasks) {
-                task()
+                runCatching { task() }
                 delay(delayMillis)
             }
         }
@@ -52,11 +52,13 @@ object LOG {
      *
      * @param appender Log appender to enable
      */
-    fun add(appender: Appender) = tasks.trySend {
-        if (appenders.none { it.loggerId == appender.loggerId }) {
-            appenders.add(appender)
-        } else {
-            log("LOG", WARN, null) { "Appender '${appender.loggerId}' discarded: an appender with that id is already registered." }
+    fun add(appender: Appender) {
+        tasks.trySend {
+            if (appenders.none { it.loggerId == appender.loggerId }) {
+                appenders.add(appender)
+            } else {
+                log("LOG", WARN, null) { "Appender '${appender.loggerId}' discarded: an appender with that id is already registered." }
+            }
         }
     }
 

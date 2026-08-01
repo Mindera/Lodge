@@ -18,7 +18,7 @@ class ColorPrintAppender(
 
     constructor(id: String) : this (id = id, level = VERBOSE)
     constructor(level: SEVERITY) : this (id = "ColorPrintAppender", level = level)
-    constructor() : this (id = "PrintAppender")
+    constructor() : this (id = "ColorPrintAppender")
 
     /**
      * Appender ID
