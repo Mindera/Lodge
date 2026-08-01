@@ -56,12 +56,9 @@ class LogcatAppender(
             } else {
                 val chunks = ceil((1f * length / maxLineLength).toDouble()).toInt()
                 for (i in 1..chunks) {
+                    val start = maxLineLength * (i - 1)
                     val max = maxLineLength * i
-                    if (max < length) {
-                        it.add("[Chunk $i of $chunks] " + substring(maxLineLength * (i - 1), max))
-                    } else {
-                        it.add("[Chunk $i of $chunks] " + substring(maxLineLength * (i - 1)))
-                    }
+                    it.add(if (max < length) substring(start, max) else substring(start))
                 }
             }
         }

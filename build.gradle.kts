@@ -11,7 +11,7 @@ group = "com.mindera.lodge"
 version = "1.0.0"
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(11)
     androidTarget()
     jvm()
     iosX64()

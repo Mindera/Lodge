@@ -8,6 +8,8 @@ import com.mindera.lodge.LOG.SEVERITY.FATAL
 import com.mindera.lodge.LOG.SEVERITY.INFO
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.WARN
+import com.mindera.lodge.extensions.emoji
+import com.mindera.lodge.extensions.initial
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ptr
 import platform.darwin.OS_LOG_DEFAULT
@@ -41,10 +43,7 @@ class OSAppender(
     override fun log(severity: SEVERITY, tag: String, t: Throwable?, log: String) {
         with(severity.toLevel()) {
             val prefix = severity.prefix(tag)
-            log(prefix + log)
-            t?.let {
-                log(prefix + it.stackTraceToString())
-            }
+            log(t?.let { "$prefix$log\n" + it.stackTraceToString() } ?: (prefix + log))
         }
     }
 
@@ -61,17 +60,5 @@ class OSAppender(
         ERROR -> OS_LOG_TYPE_ERROR
         FATAL -> OS_LOG_TYPE_ERROR
     }
-
-    private fun SEVERITY.prefix(tag: String) = "$emoji $name: $tag"
-
-    // Kudos to Napier https://github.com/AAkira/Napier#darwinios-macos-watchos-tvosintelapple-silicon
-    private val SEVERITY.emoji: String get()= when (this) {
-        VERBOSE -> "⚪"
-        DEBUG -> "🔵"
-        INFO -> "🟢"
-        WARN -> "🟡"
-        ERROR -> "🔴"
-        FATAL -> "🟤"
-    }
-
+    private fun SEVERITY.prefix(tag: String) = "$emoji | $initial | $tag: "
 }
