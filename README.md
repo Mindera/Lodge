@@ -52,19 +52,17 @@ commonMain {
 ---
 > **For evaluation only.** The XCFramework exists so that any team curious about Kotlin Multiplatform can try a real KMP artifact in an iOS app. It isn't a supported product: its API can change between releases and it comes with no compatibility guarantees.
 
-Each GitHub release includes `Lodge.xcframework.zip` and its checksum, `Lodge.xcframework.zip.sha256`. Both can be downloaded without authentication. The framework is static and needs iOS 12.0 or later.
-
-Add it with Swift Package Manager, replacing `<version>` with the release tag and `<checksum>` with the contents of the `.sha256` file:
+Add it with Swift Package Manager, either in Xcode with **File > Add Package Dependencies** or in your `Package.swift`:
 
 ```swift
-.binaryTarget(
-    name: "Lodge",
-    url: "https://github.com/Mindera/Lodge/releases/download/<version>/Lodge.xcframework.zip",
-    checksum: "<checksum>"
-)
+dependencies: [
+    .package(url: "https://github.com/Mindera/Lodge.git", from: "1.0.0")
+]
 ```
 
-Or download the zip, unpack it and drag `Lodge.xcframework` into your Xcode project.
+No authentication is needed. It needs iOS 12.0 or later, and the framework is static.
+
+Only release tags can be used, not `main`: [KMMBridge](https://github.com/touchlab/KMMBridge) generates `Package.swift` for each release and commits it to that tag only. The binary is attached to the GitHub release, so it never enters the repository.
 
 Then use it from Swift:
 
@@ -83,7 +81,10 @@ Before you try it:
 
 ## Publishing
 ---
-Publishing a GitHub release runs the [Publish workflow](.github/workflows/publish.yml), which publishes to GitHub Packages and attaches the XCFramework to the release. Bump `version` in `build.gradle.kts` first, because GitHub Packages rejects a version that already exists.
+1. Bump `LIBRARY_VERSION` in `gradle.properties`, because GitHub Packages rejects a version that already exists.
+2. Run the [Publish workflow](.github/workflows/publish.yml) from the Actions tab on `main`.
+
+The workflow publishes to GitHub Packages, creates the GitHub release, attaches the XCFramework, and tags a commit containing the generated `Package.swift`. Don't create the tag or the release by hand.
 
 # License
 

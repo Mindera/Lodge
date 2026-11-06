@@ -2,16 +2,15 @@
     "DSL_SCOPE_VIOLATION", // Remove when KTIJ-19369 is fixed. https://youtrack.jetbrains.com/issue/KTIJ-19369
 )
 
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kmmbridge.github)
     `maven-publish`
 }
 
 group = "com.mindera.lodge"
-version = "1.0.0"
+version = providers.gradleProperty("LIBRARY_VERSION").get()
 
 kotlin {
     jvmToolchain(11)
@@ -22,13 +21,11 @@ kotlin {
     jvm {
         compilations.all { kotlinOptions.jvmTarget = "1.8" }
     }
-    val xcFramework = XCFramework("Lodge")
     listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach {
         it.compilations.getByName("main").cinterops.create("oslog")
         it.binaries.framework {
             baseName = "Lodge"
             isStatic = true
-            xcFramework.add(this)
         }
     }
 
@@ -78,6 +75,13 @@ android {
     }
     buildFeatures {
         buildConfig = false
+    }
+}
+
+kmmbridge {
+    gitHubReleaseArtifacts()
+    spm(swiftToolVersion = "5.9") {
+        iOS { v("12") }
     }
 }
 
