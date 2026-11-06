@@ -31,15 +31,16 @@ class LogcatAppender(
     override val minLogLevel: SEVERITY = level
 
     override fun log(severity: SEVERITY, tag: String, t: Throwable?, log: String) {
-        val text = t?.let { "$log\n${it.stackTraceToString()}" } ?: log
-        for (chunk in text.toChunks()) {
+        val chunks = log.toChunks()
+        chunks.forEachIndexed { index, chunk ->
+            val throwable = t.takeIf { index == chunks.lastIndex }
             when (severity) {
-                VERBOSE -> Log.v(tag, chunk)
-                DEBUG -> Log.d(tag, chunk)
-                INFO -> Log.i(tag, chunk)
-                WARN -> Log.w(tag, chunk)
-                ERROR -> Log.e(tag, chunk)
-                FATAL -> Log.wtf(tag, chunk)
+                VERBOSE -> Log.v(tag, chunk, throwable)
+                DEBUG -> Log.d(tag, chunk, throwable)
+                INFO -> Log.i(tag, chunk, throwable)
+                WARN -> Log.w(tag, chunk, throwable)
+                ERROR -> Log.e(tag, chunk, throwable)
+                FATAL -> Log.wtf(tag, chunk, throwable)
             }
         }
     }
