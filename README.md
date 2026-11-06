@@ -48,9 +48,42 @@ commonMain {
 }
 ```
 
+## iOS XCFramework (test artifact)
+---
+> **For evaluation only.** The XCFramework exists so that any team curious about Kotlin Multiplatform can try a real KMP artifact in an iOS app. It isn't a supported product: its API can change between releases and it comes with no compatibility guarantees.
+
+Each GitHub release includes `Lodge.xcframework.zip` and its checksum, `Lodge.xcframework.zip.sha256`. Both can be downloaded without authentication. The framework is static and needs iOS 12.0 or later.
+
+Add it with Swift Package Manager, replacing `<version>` with the release tag and `<checksum>` with the contents of the `.sha256` file:
+
+```swift
+.binaryTarget(
+    name: "Lodge",
+    url: "https://github.com/Mindera/Lodge/releases/download/<version>/Lodge.xcframework.zip",
+    checksum: "<checksum>"
+)
+```
+
+Or download the zip, unpack it and drag `Lodge.xcframework` into your Xcode project.
+
+Then use it from Swift:
+
+```swift
+import Lodge
+
+LOG.shared.add(appender: OSAppender())
+LOG.shared.i(tag: "MyTag", text: "Hello World")
+LOG.shared.d(tag: "MyTag", message: { "Built only when an appender accepts it" })
+```
+
+Before you try it:
+
+- **Logs are written asynchronously.** Anything still queued when the process exits is lost, which can affect unit tests and short-lived extensions.
+- **It includes its own Kotlin runtime.** If your app already uses a KMP framework, add Lodge to that shared module rather than using this XCFramework.
+
 ## Publishing
 ---
-Publishing a GitHub release runs the [Publish workflow](.github/workflows/publish.yml). Bump `version` in `build.gradle.kts` first, because GitHub Packages rejects a version that already exists.
+Publishing a GitHub release runs the [Publish workflow](.github/workflows/publish.yml), which publishes to GitHub Packages and attaches the XCFramework to the release. Bump `version` in `build.gradle.kts` first, because GitHub Packages rejects a version that already exists.
 
 # License
 

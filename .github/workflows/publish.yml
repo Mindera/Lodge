@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -26,3 +26,14 @@ jobs:
       - run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Attach the XCFramework to the release
+        if: github.event_name == 'release'
+        run: |
+          ./gradlew assembleLodgeReleaseXCFramework
+          cd build/XCFrameworks/release
+          zip -qry Lodge.xcframework.zip Lodge.xcframework
+          swift package compute-checksum Lodge.xcframework.zip > Lodge.xcframework.zip.sha256
+          gh release upload "$TAG" Lodge.xcframework.zip Lodge.xcframework.zip.sha256
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
