@@ -9,7 +9,6 @@ import com.mindera.lodge.LOG.SEVERITY.FATAL
 import com.mindera.lodge.LOG.SEVERITY.INFO
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.WARN
-import kotlin.math.ceil
 
 /**
  * Log appender for Logcat
@@ -32,14 +31,15 @@ class LogcatAppender(
     override val minLogLevel: SEVERITY = level
 
     override fun log(severity: SEVERITY, tag: String, t: Throwable?, log: String) {
-        for (chunk in log.toChunks()) {
+        val text = t?.let { "$log\n${it.stackTraceToString()}" } ?: log
+        for (chunk in text.toChunks()) {
             when (severity) {
-                VERBOSE -> Log.v(tag, chunk, t)
-                DEBUG -> Log.d(tag, chunk, t)
-                INFO -> Log.i(tag, chunk, t)
-                WARN -> Log.w(tag, chunk, t)
-                ERROR -> Log.e(tag, chunk, t)
-                FATAL -> Log.wtf(tag, chunk, t)
+                VERBOSE -> Log.v(tag, chunk)
+                DEBUG -> Log.d(tag, chunk)
+                INFO -> Log.i(tag, chunk)
+                WARN -> Log.w(tag, chunk)
+                ERROR -> Log.e(tag, chunk)
+                FATAL -> Log.wtf(tag, chunk)
             }
         }
     }
@@ -50,17 +50,10 @@ class LogcatAppender(
      * @return A list of lines to log
      */
     private fun String.toChunks(): List<String> {
-        return mutableListOf<String>().also {
-            if (length <= maxLineLength || !isSplitLinesAboveMaxLength) {
-                it.add(this@toChunks)
-            } else {
-                val chunks = ceil((1f * length / maxLineLength).toDouble()).toInt()
-                for (i in 1..chunks) {
-                    val start = maxLineLength * (i - 1)
-                    val max = maxLineLength * i
-                    it.add(if (max < length) substring(start, max) else substring(start))
-                }
-            }
+        return if (length <= maxLineLength || !isSplitLinesAboveMaxLength) {
+            listOf(this)
+        } else {
+            chunked(maxLineLength)
         }
     }
 }

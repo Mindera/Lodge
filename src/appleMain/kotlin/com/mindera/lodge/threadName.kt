@@ -4,5 +4,5 @@ import platform.Foundation.NSThread
 
 internal actual val threadName: String
     get() = with(NSThread.currentThread) {
-        name.toString().ifEmpty { hash.toString() }
+        if (isMainThread) "main" else name.orEmpty().ifEmpty { hash.toString() }
     }

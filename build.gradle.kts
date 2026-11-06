@@ -12,11 +12,15 @@ version = "1.0.0"
 
 kotlin {
     jvmToolchain(11)
-    androidTarget()
-    jvm()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    androidTarget {
+        compilations.all { kotlinOptions.jvmTarget = "1.8" }
+    }
+    jvm {
+        compilations.all { kotlinOptions.jvmTarget = "1.8" }
+    }
+    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach {
+        it.compilations.getByName("main").cinterops.create("oslog")
+    }
 
     sourceSets {
         commonMain {
@@ -56,8 +60,11 @@ android {
     namespace = "com.mindera.lodge"
     compileSdk = 33
     defaultConfig {
-        minSdk = 21
-        targetSdk = 33
+        minSdk = 16
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     buildFeatures {
         buildConfig = false

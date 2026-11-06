@@ -1,0 +1,7 @@
+package = com.mindera.lodge.interop
+headers = os/log.h
+---
+// os_log needs its format string to live in the binary, so it can't be passed from Kotlin.
+static inline void lodge_os_log(os_log_type_t type, const char *message) {
+    os_log_with_type(OS_LOG_DEFAULT, type, "%{public}s", message);
+}
