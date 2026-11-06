@@ -1,0 +1,28 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    # iOS artifacts can only be built on macOS.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      # JDK 11 is the Kotlin toolchain, JDK 17 runs AGP.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            11
+            17
+      - uses: android-actions/setup-android@v3
+      - run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
