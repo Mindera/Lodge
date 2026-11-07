@@ -9,7 +9,6 @@ import com.mindera.lodge.LOG.SEVERITY.FATAL
 import com.mindera.lodge.LOG.SEVERITY.INFO
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.WARN
-import kotlin.math.ceil
 
 /**
  * Log appender for Logcat
@@ -32,14 +31,16 @@ class LogcatAppender(
     override val minLogLevel: SEVERITY = level
 
     override fun log(severity: SEVERITY, tag: String, t: Throwable?, log: String) {
-        for (chunk in log.toChunks()) {
+        val chunks = log.toChunks()
+        chunks.forEachIndexed { index, chunk ->
+            val throwable = t.takeIf { index == chunks.lastIndex }
             when (severity) {
-                VERBOSE -> Log.v(tag, chunk, t)
-                DEBUG -> Log.d(tag, chunk, t)
-                INFO -> Log.i(tag, chunk, t)
-                WARN -> Log.w(tag, chunk, t)
-                ERROR -> Log.e(tag, chunk, t)
-                FATAL -> Log.wtf(tag, chunk, t)
+                VERBOSE -> Log.v(tag, chunk, throwable)
+                DEBUG -> Log.d(tag, chunk, throwable)
+                INFO -> Log.i(tag, chunk, throwable)
+                WARN -> Log.w(tag, chunk, throwable)
+                ERROR -> Log.e(tag, chunk, throwable)
+                FATAL -> Log.wtf(tag, chunk, throwable)
             }
         }
     }
@@ -50,17 +51,10 @@ class LogcatAppender(
      * @return A list of lines to log
      */
     private fun String.toChunks(): List<String> {
-        return mutableListOf<String>().also {
-            if (length <= maxLineLength || !isSplitLinesAboveMaxLength) {
-                it.add(this@toChunks)
-            } else {
-                val chunks = ceil((1f * length / maxLineLength).toDouble()).toInt()
-                for (i in 1..chunks) {
-                    val start = maxLineLength * (i - 1)
-                    val max = maxLineLength * i
-                    it.add(if (max < length) substring(start, max) else substring(start))
-                }
-            }
+        return if (length <= maxLineLength || !isSplitLinesAboveMaxLength) {
+            listOf(this)
+        } else {
+            chunked(maxLineLength)
         }
     }
 }

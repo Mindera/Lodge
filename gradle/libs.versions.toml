@@ -1,5 +1,5 @@
 [versions]
-coroutines = "1.7.3"
+coroutines = "1.6.4"
 gradle = "8.1.1"
 kotlin = "1.9.20"
 

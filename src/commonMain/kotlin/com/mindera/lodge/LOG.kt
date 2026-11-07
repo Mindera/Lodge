@@ -7,12 +7,10 @@ import com.mindera.lodge.LOG.SEVERITY.INFO
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.WARN
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -31,18 +29,15 @@ object LOG {
      */
     private val tasks = Channel<() -> Unit>(UNLIMITED)
 
-    private var delayMillis = 0L
-
     /**
      * A dedicated coroutine that pulls lambdas out of `tasks` and executes
      * them one-by-one, preserving the exact order in which they were queued.
      */
     @Suppress("unused")
-    private val scope = CoroutineScope(SupervisorJob() + Default.limitedParallelism(1)).apply {
-        launch(start = UNDISPATCHED) {
+    private val scope = CoroutineScope(SupervisorJob() + Default).apply {
+        launch {
             for (task in tasks) {
                 runCatching { task() }
-                delay(delayMillis)
             }
         }
     }
@@ -53,13 +48,7 @@ object LOG {
      * @param appender Log appender to enable
      */
     fun add(appender: Appender) {
-        tasks.trySend {
-            if (appenders.none { it.loggerId == appender.loggerId }) {
-                appenders.add(appender)
-            } else {
-                log("LOG", WARN, null) { "Appender '${appender.loggerId}' discarded: an appender with that id is already registered." }
-            }
-        }
+        add(listOf(appender))
     }
 
     /**
@@ -357,11 +346,11 @@ object LOG {
     ) {
         val originalThread = threadName
         tasks.trySend {
-            if (appenders.isNotEmpty()) {
+            val eligible = appenders.filter { it.minLogLevel <= severity }
+            if (eligible.isNotEmpty()) {
                 val log = "[T#$originalThread] | ${message()}"
-                appenders.forEach {
-                    if (it.minLogLevel.ordinal > severity.ordinal) return@forEach
-                    it.log(severity, tag, t, log)
+                eligible.forEach {
+                    runCatching { it.log(severity, tag, t, log) }
                 }
             }
         }
