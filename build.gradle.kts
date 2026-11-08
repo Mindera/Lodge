@@ -5,11 +5,12 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kmmbridge.github)
     `maven-publish`
 }
 
 group = "com.mindera.lodge"
-version = "1.0.0"
+version = providers.gradleProperty("LIBRARY_VERSION").get()
 
 kotlin {
     jvmToolchain(11)
@@ -22,6 +23,10 @@ kotlin {
     }
     listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach {
         it.compilations.getByName("main").cinterops.create("oslog")
+        it.binaries.framework {
+            baseName = "Lodge"
+            isStatic = true
+        }
     }
 
     sourceSets {
@@ -67,6 +72,13 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+kmmbridge {
+    gitHubReleaseArtifacts()
+    spm(swiftToolVersion = "5.9") {
+        iOS { v("12") }
     }
 }
 

@@ -1,10 +1,12 @@
 [versions]
 coroutines = "1.6.4"
 gradle = "8.1.1"
+kmmbridge = "1.2.1"
 kotlin = "1.9.20"
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "gradle" }
+kmmbridge-github = { id = "co.touchlab.kmmbridge.github", version.ref = "kmmbridge" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 
 [libraries]

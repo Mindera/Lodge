@@ -48,9 +48,43 @@ commonMain {
 }
 ```
 
+## iOS XCFramework (test artifact)
+---
+> **For evaluation only.** The XCFramework exists so that any team curious about Kotlin Multiplatform can try a real KMP artifact in an iOS app. It isn't a supported product: its API can change between releases and it comes with no compatibility guarantees.
+
+Add it with Swift Package Manager, either in Xcode with **File > Add Package Dependencies** or in your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Mindera/Lodge.git", from: "1.0.0")
+]
+```
+
+No authentication is needed. It needs iOS 12.0 or later, and the framework is static.
+
+Only release tags can be used, not `main`: [KMMBridge](https://github.com/touchlab/KMMBridge) generates `Package.swift` for each release and commits it to that tag only. The binary is attached to the GitHub release, so it never enters the repository.
+
+Then use it from Swift:
+
+```swift
+import Lodge
+
+LOG.shared.add(appender: OSAppender())
+LOG.shared.i(tag: "MyTag", text: "Hello World")
+LOG.shared.d(tag: "MyTag", message: { "Built only when an appender accepts it" })
+```
+
+Before you try it:
+
+- **Logs are written asynchronously.** Anything still queued when the process exits is lost, which can affect unit tests and short-lived extensions.
+- **It includes its own Kotlin runtime.** If your app already uses a KMP framework, add Lodge to that shared module rather than using this XCFramework.
+
 ## Publishing
 ---
-Publishing a GitHub release runs the [Publish workflow](.github/workflows/publish.yml). Bump `version` in `build.gradle.kts` first, because GitHub Packages rejects a version that already exists.
+1. Bump `LIBRARY_VERSION` in `gradle.properties`, because GitHub Packages rejects a version that already exists.
+2. Run the [Publish workflow](.github/workflows/publish.yml) from the Actions tab on `main`.
+
+The workflow publishes to GitHub Packages, creates the GitHub release, attaches the XCFramework, and tags a commit containing the generated `Package.swift`. Don't create the tag or the release by hand.
 
 # License
 
