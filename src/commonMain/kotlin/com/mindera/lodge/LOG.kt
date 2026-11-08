@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 object LOG {
 
     /**
-     * List of appenders (it can be improved to an ArrayMap if we want to add the support lib as dependency
+     * Registered appenders. Only accessed from the worker coroutine.
      */
     private val appenders: MutableSet<Appender> = mutableSetOf()
 
