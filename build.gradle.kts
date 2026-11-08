@@ -5,6 +5,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
+    `maven-publish`
 }
 
 group = "com.mindera.lodge"
@@ -13,6 +14,7 @@ version = "1.0.0"
 kotlin {
     jvmToolchain(11)
     androidTarget {
+        publishLibraryVariants("release")
         compilations.all { kotlinOptions.jvmTarget = "1.8" }
     }
     jvm {
@@ -65,5 +67,18 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Mindera/Lodge")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
