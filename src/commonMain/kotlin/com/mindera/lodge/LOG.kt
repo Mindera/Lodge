@@ -6,6 +6,7 @@ import com.mindera.lodge.LOG.SEVERITY.FATAL
 import com.mindera.lodge.LOG.SEVERITY.INFO
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
 import com.mindera.lodge.LOG.SEVERITY.WARN
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.SupervisorJob
@@ -84,6 +85,16 @@ object LOG {
      */
     fun remove(ids: Set<String>) {
         tasks.trySend { appenders.removeAll { ids.contains(it.loggerId) } }
+    }
+
+    /**
+     * Suspends until every log, add and remove queued before this call has been processed.
+     * Call it before the process is expected to end, so queued logs are not lost.
+     */
+    suspend fun flush() {
+        val done = CompletableDeferred<Unit>()
+        tasks.trySend { done.complete(Unit) }
+        done.await()
     }
 
     /**

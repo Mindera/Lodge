@@ -3,6 +3,7 @@ package com.mindera.lodge
 import com.mindera.lodge.LOG.SEVERITY
 import com.mindera.lodge.LOG.SEVERITY.ERROR
 import com.mindera.lodge.LOG.SEVERITY.VERBOSE
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.test.Test
@@ -46,5 +47,17 @@ class LOGTest {
         assertTrue(received.await(5, SECONDS))
         assertFalse(built)
         LOG.remove("errors")
+    }
+
+    @Test
+    fun flushWaitsForQueuedLogs() = runBlocking {
+        var logged = false
+        LOG.add(TestAppender("flush", VERBOSE) { logged = true })
+
+        LOG.i("tag", "message")
+        LOG.flush()
+
+        assertTrue(logged)
+        LOG.remove("flush")
     }
 }
