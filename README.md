@@ -24,6 +24,15 @@ LOG.i("MyTag", "Hello World")
 You can control what will be logged based on severity.
 For example, if you only want an `Appender` to receive logs `WARN` and up, you can configure it by setting the `minLogLevel` of the `Appender`. 
 
+## Building
+
+The module applies a single neutral build convention, `com.mindera.lodge.build`, which owns toolchains, platform targets and Android configuration. The module script keeps dependencies, source sets and the library identity (`com.mindera.lodge`).
+
+The owning build decides which implementation provides that plugin:
+
+- **Standalone:** `settings.gradle.kts` includes `build-logic`, which ships the default implementation. Run `./gradlew build` here.
+- **Embedded:** a host build (for example as a Gradle subproject) supplies its own implementation through its `pluginManagement`. Lodge's `build-logic` is not included, so exactly one implementation is resolved.
+
 # License
 
 

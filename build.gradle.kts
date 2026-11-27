@@ -1,27 +1,12 @@
-@file:Suppress(
-    "DSL_SCOPE_VIOLATION", // Remove when KTIJ-19369 is fixed. https://youtrack.jetbrains.com/issue/KTIJ-19369
-)
-
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.multiplatform)
+    // Resolved by the owning build: build-logic when standalone, the host build's pluginManagement when embedded.
+    alias(libs.plugins.lodge.build)
 }
 
 group = "com.mindera.lodge"
 version = "1.0.0"
 
 kotlin {
-    jvmToolchain(11)
-    androidTarget {
-        compilations.all { kotlinOptions.jvmTarget = "1.8" }
-    }
-    jvm {
-        compilations.all { kotlinOptions.jvmTarget = "1.8" }
-    }
-    listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach {
-        it.compilations.getByName("main").cinterops.create("oslog")
-    }
-
     sourceSets {
         commonMain {
             dependencies {
@@ -33,19 +18,16 @@ kotlin {
             dependsOn(commonMain.get())
         }
 
-        androidMain {
+        // Targets are chosen by the build convention, so only wire up the source sets that exist.
+        matching { it.name == "androidMain" || it.name == "jvmMain" }.configureEach {
             dependsOn(commonJvm)
         }
 
-        jvmMain {
-            dependsOn(commonJvm)
-        }
-
-        create("appleMain") {
+        val appleMain = create("appleMain") {
             dependsOn(commonMain.get())
-            getByName("iosX64Main").dependsOn(this)
-            getByName("iosArm64Main").dependsOn(this)
-            getByName("iosSimulatorArm64Main").dependsOn(this)
+        }
+        matching { it.name in setOf("iosX64Main", "iosArm64Main", "iosSimulatorArm64Main") }.configureEach {
+            dependsOn(appleMain)
         }
 
         commonTest {
@@ -53,20 +35,5 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-    }
-}
-
-android {
-    namespace = "com.mindera.lodge"
-    compileSdk = 33
-    defaultConfig {
-        minSdk = 16
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    buildFeatures {
-        buildConfig = false
     }
 }
