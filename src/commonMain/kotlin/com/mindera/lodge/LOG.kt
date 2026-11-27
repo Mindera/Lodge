@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -21,9 +23,20 @@ import kotlinx.coroutines.launch
 object LOG {
 
     /**
-     * Registered appenders. Only accessed from the worker coroutine.
+     * Registered appenders, each with the [Appender.minLogLevel] it was added with.
+     * Only accessed from the worker coroutine.
      */
-    private val appenders: MutableSet<Appender> = mutableSetOf()
+    private val appenders: MutableMap<Appender, SEVERITY> = mutableMapOf()
+
+    /**
+     * How many appenders accept each severity, packed as one [LEVEL_BITS]-bit counter per
+     * [SEVERITY]. It lets [log] drop a message on the calling thread when nothing would accept it.
+     *
+     * A counter goes up as soon as [add] is called and only comes down on the worker, once the
+     * appender is really gone. So it can overcount for a moment, but it never hides a level
+     * that an appender, registered or still queued, is waiting for.
+     */
+    private val accepted = MutableStateFlow(0L)
 
     /**
      * Work queue
@@ -58,11 +71,15 @@ object LOG {
      * @param appenders Log appenders to enable
      */
     fun add(appenders: List<Appender>) {
+        val candidates = appenders.map { it to it.minLogLevel }
+        val counters = candidates.sumOf { (_, level) -> level.counter }
+        accepted.update { it + counters }
         tasks.trySend {
-            appenders.forEach { candidate ->
-                if (this.appenders.none { it.loggerId == candidate.loggerId }) {
-                    this.appenders.add(candidate)
+            candidates.forEach { (candidate, level) ->
+                if (this.appenders.keys.none { it.loggerId == candidate.loggerId }) {
+                    this.appenders[candidate] = level
                 } else {
+                    accepted.update { it - level.counter }
                     log("LOG", WARN, null) { "Appender '${candidate.loggerId}' discarded: an appender with that id is already registered." }
                 }
             }
@@ -75,7 +92,7 @@ object LOG {
      * @param id Log id of the loggers to be removed
      */
     fun remove(id: String) {
-        tasks.trySend { appenders.removeAll { id == it.loggerId } }
+        tasks.trySend { removeIf { id == it.loggerId } }
     }
 
     /**
@@ -84,7 +101,17 @@ object LOG {
      * @param ids Log ids of each of the loggers enabled by the order sent
      */
     fun remove(ids: Set<String>) {
-        tasks.trySend { appenders.removeAll { ids.contains(it.loggerId) } }
+        tasks.trySend { removeIf { ids.contains(it.loggerId) } }
+    }
+
+    private inline fun removeIf(predicate: (Appender) -> Boolean) {
+        val entries = appenders.entries.iterator()
+        for ((appender, level) in entries) {
+            if (predicate(appender)) {
+                entries.remove()
+                accepted.update { it - level.counter }
+            }
+        }
     }
 
     /**
@@ -355,9 +382,10 @@ object LOG {
         t: Throwable?,
         message: () -> String,
     ) {
+        if (accepted.value and severity.acceptedMask == 0L) return
         val originalThread = threadName
         tasks.trySend {
-            val eligible = appenders.filter { it.minLogLevel <= severity }
+            val eligible = appenders.filterValues { it <= severity }.keys
             if (eligible.isNotEmpty()) {
                 val log = "[T#$originalThread] | ${message()}"
                 eligible.forEach {
@@ -366,6 +394,21 @@ object LOG {
             }
         }
     }
+
+    /**
+     * One appender in this severity's counter of [accepted].
+     */
+    private val SEVERITY.counter: Long get() = 1L shl (ordinal * LEVEL_BITS)
+
+    /**
+     * Covers the counters of every appender level that accepts this severity: its own and all below.
+     */
+    private val SEVERITY.acceptedMask: Long get() = (1L shl ((ordinal + 1) * LEVEL_BITS)) - 1
+
+    /**
+     * Width of each counter in [accepted]: room for 1023 appenders per level.
+     */
+    private const val LEVEL_BITS = 10
 
     enum class SEVERITY {
         VERBOSE,
