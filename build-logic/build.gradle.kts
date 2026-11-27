@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(libs.android.gradle.plugin)
+    implementation(libs.kmmbridge.github)
     implementation(libs.kotlin.gradle.plugin)
 }
 

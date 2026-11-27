@@ -1,3 +1,4 @@
+import co.touchlab.kmmbridge.KmmBridgeExtension
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -33,6 +34,10 @@ class LodgeBuildPlugin : Plugin<Project> {
             iosSimulatorArm64()
             targets.withType(KotlinNativeTarget::class.java).configureEach {
                 compilations.getByName("main").cinterops.create("oslog")
+                binaries.framework {
+                    baseName = "Lodge"
+                    isStatic = true
+                }
             }
         }
         extensions.configure<LibraryExtension> {
@@ -44,6 +49,14 @@ class LodgeBuildPlugin : Plugin<Project> {
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_1_8
                 targetCompatibility = JavaVersion.VERSION_1_8
+            }
+        }
+        // Builds the XCFramework, uploads it to the GitHub release and generates Package.swift for the release tag.
+        pluginManager.apply("co.touchlab.kmmbridge.github")
+        extensions.configure<KmmBridgeExtension> {
+            gitHubReleaseArtifacts()
+            spm(swiftToolVersion = "5.9") {
+                iOS { v("12") }
             }
         }
         extensions.configure<PublishingExtension> {

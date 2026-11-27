@@ -1,20 +1,22 @@
 name: Publish
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
   publish:
+    concurrency: publish-${{ github.repository }}
     # iOS artifacts can only be built on macOS.
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       # JDK 11 is the Kotlin toolchain, JDK 17 runs AGP.
       - uses: actions/setup-java@v4
         with:
@@ -23,6 +25,28 @@ jobs:
             11
             17
       - uses: android-actions/setup-android@v3
-      - run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
+      - name: Read the library version
+        id: version
+        run: echo "value=$(grep '^LIBRARY_VERSION=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+      - name: Create the release that hosts the XCFramework
+        id: release
+        uses: softprops/action-gh-release@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.version.outputs.value }}
+      - name: Publish artifacts and generate Package.swift
+        run: |
+          ./gradlew publishAllPublicationsToGitHubPackagesRepository kmmBridgePublish \
+            -PENABLE_PUBLISHING=true \
+            -PGITHUB_ARTIFACT_RELEASE_ID=${{ steps.release.outputs.id }} \
+            -PGITHUB_PUBLISH_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -PGITHUB_REPO=${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The XCFramework URL only exists after the upload, so Package.swift can only be
+      # committed now. This moves the release tag to that commit, which stays off main.
+      - uses: touchlab/ga-update-release-tag@v1.1
+        with:
+          commitMessage: Add Package.swift for ${{ steps.version.outputs.value }}
+          tagMessage: Lodge ${{ steps.version.outputs.value }}
+          tagVersion: ${{ steps.version.outputs.value }}

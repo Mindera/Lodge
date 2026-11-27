@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.mindera.lodge"
-version = "1.0.0"
+version = providers.gradleProperty("LIBRARY_VERSION").get()
 
 kotlin {
     sourceSets {
