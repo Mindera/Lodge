@@ -2,7 +2,7 @@
 coroutines = "1.6.4"
 gradle = "8.1.1"
 kmmbridge = "1.2.1"
-kotlin = "1.9.20"
+kotlin = "2.4.21"
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "gradle" }
