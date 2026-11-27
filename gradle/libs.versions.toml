@@ -1,6 +1,7 @@
 [versions]
 coroutines = "1.6.4"
 gradle = "8.1.1"
+kmmbridge = "1.2.1"
 kotlin = "1.9.20"
 
 [plugins]
@@ -11,4 +12,5 @@ lodge-build = { id = "com.mindera.lodge.build", version = "1.0.0" }
 [libraries]
 kotlinx-coroutines-core  = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
+kmmbridge-github = { group = "co.touchlab.kmmbridge", name = "kmmbridge-github", version.ref = "kmmbridge" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
