@@ -60,4 +60,56 @@ class LOGTest {
         assertTrue(logged)
         LOG.remove("flush")
     }
+
+    @Test
+    fun logRightAfterAddIsDelivered() {
+        val received = CountDownLatch(1)
+        LOG.add(TestAppender("verbose", VERBOSE) { received.countDown() })
+
+        LOG.v("tag", "message")
+
+        assertTrue(received.await(5, SECONDS))
+        LOG.remove("verbose")
+    }
+
+    @Test
+    fun removedAppenderNoLongerKeepsItsLevelOpen() {
+        val received = CountDownLatch(1)
+        var built = false
+        LOG.add(TestAppender("verbose", VERBOSE) {})
+        LOG.add(TestAppender("errors", ERROR) { received.countDown() })
+        LOG.remove("verbose")
+
+        LOG.v("tag") {
+            built = true
+            "message"
+        }
+        LOG.e("tag", "done")
+
+        assertTrue(received.await(5, SECONDS))
+        assertFalse(built)
+        LOG.remove("errors")
+    }
+
+    @Test
+    fun discardedDuplicateDoesNotKeepItsLevelOpen() {
+        val received = CountDownLatch(1)
+        var built = false
+        LOG.add(TestAppender("errors", ERROR) { received.countDown() })
+        LOG.add(TestAppender("errors", VERBOSE) {})
+        LOG.e("tag", "flush")
+        assertTrue(received.await(5, SECONDS))
+
+        val done = CountDownLatch(1)
+        LOG.add(TestAppender("done", ERROR) { done.countDown() })
+        LOG.v("tag") {
+            built = true
+            "message"
+        }
+        LOG.e("tag", "done")
+
+        assertTrue(done.await(5, SECONDS))
+        assertFalse(built)
+        LOG.remove(setOf("errors", "done"))
+    }
 }
