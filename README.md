@@ -24,14 +24,44 @@ LOG.i("MyTag", "Hello World")
 You can control what will be logged based on severity.
 For example, if you only want an `Appender` to receive logs `WARN` and up, you can configure it by setting the `minLogLevel` of the `Appender`. 
 
+## Installation
+---
+Lodge is published to [GitHub Packages](https://github.com/Mindera/Lodge/packages), which requires authentication even for public packages. Use a personal access token with the `read:packages` scope.
+
+```kotlin
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/Mindera/Lodge")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+```
+
+```kotlin
+commonMain {
+    dependencies {
+        implementation("com.mindera.lodge:Lodge:1.0.0")
+    }
+}
+```
+
 ## Building
 
-The module applies a single neutral build convention, `com.mindera.lodge.build`, which owns toolchains, platform targets and Android configuration. The module script keeps dependencies, source sets and the library identity (`com.mindera.lodge`).
+The module applies a single neutral build convention, `com.mindera.lodge.build`, which owns toolchains, platform targets, Android configuration and publishing. The module script keeps dependencies, source sets and the library identity (`com.mindera.lodge`).
 
 The owning build decides which implementation provides that plugin:
 
 - **Standalone:** `settings.gradle.kts` includes `build-logic`, which ships the default implementation. Run `./gradlew build` here.
 - **Embedded:** a host build (for example as a Gradle subproject) supplies its own implementation through its `pluginManagement`. Lodge's `build-logic` is not included, so exactly one implementation is resolved.
+
+## Publishing
+---
+Publishing a GitHub release runs the [Publish workflow](.github/workflows/publish.yml). Bump `version` in `build.gradle.kts` first, because GitHub Packages rejects a version that already exists.
+
+Publishing is part of the standalone convention in `build-logic`, so an embedding build doesn't inherit it.
 
 # License
 
