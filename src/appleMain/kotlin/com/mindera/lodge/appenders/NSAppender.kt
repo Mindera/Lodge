@@ -28,11 +28,11 @@ class NSAppender(
 
     @Suppress("CAST_NEVER_SUCCEEDS")
     override fun log(severity: SEVERITY, tag: String, t: Throwable?, log: String) {
-        with(severity.name) {
-            NSLog("%s: %s %@", this, tag, log as NSString)
-            t?.let {
-                NSLog("%s: %s %@", this, tag, it.stackTraceToString() as NSString)
-            }
+        val level = severity.name as NSString
+        val tagText = tag as NSString
+        NSLog("%@: %@ %@", level, tagText, log as NSString)
+        t?.let {
+            NSLog("%@: %@ %@", level, tagText, it.stackTraceToString() as NSString)
         }
     }
 }
